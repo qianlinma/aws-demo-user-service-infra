@@ -12,3 +12,8 @@ output "users_table_name" {
   description = "DynamoDB table used by the user service."
   value       = aws_dynamodb_table.users.name
 }
+
+output "user_service_discovery_dns_name" {
+  description = "Private DNS name other backend services can use to call the user service."
+  value       = "${var.user_service_discovery_name}.${data.aws_service_discovery_dns_namespace.demo.name}"
+}

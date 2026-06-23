@@ -33,6 +33,13 @@ data "aws_security_group" "backend_task" {
   vpc_id = data.aws_vpc.demo.id
 }
 
+# 查找已经存在的 Cloud Map private namespace，比如 demo.local。
+# User Service 会注册到这个 namespace 下面，形成 user.demo.local。
+data "aws_service_discovery_dns_namespace" "demo" {
+  name = var.service_discovery_namespace_name
+  type = "DNS_PRIVATE"
+}
+
 data "aws_iam_policy_document" "ecs_task_assume_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -220,6 +227,28 @@ resource "aws_lb_listener" "user_http" {
   }
 }
 
+resource "aws_service_discovery_service" "user" {
+  # Cloud Map 里的 service 名字；配合 namespace 会变成 user.demo.local。
+  name = var.user_service_discovery_name
+
+  dns_config {
+    # 把这个 service 放进 demo.local 这个 VPC 内部 DNS namespace。
+    namespace_id   = data.aws_service_discovery_dns_namespace.demo.id
+    routing_policy = "MULTIVALUE"
+
+    # A record 表示 DNS 查询会返回 ECS task 的 private IP。
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+  }
+
+  health_check_custom_config {
+    # ECS 会负责注册/注销 task；这里使用 Cloud Map 的自定义健康检查配置。
+    failure_threshold = 1
+  }
+}
+
 resource "aws_ecs_task_definition" "user_service" {
   family                   = "demo-user-task-tf"
   requires_compatibilities = ["FARGATE"]
@@ -277,6 +306,12 @@ resource "aws_ecs_service" "user_service" {
   launch_type     = "FARGATE"
 
   health_check_grace_period_seconds = 60
+
+  # 把 user ECS task 注册到 Cloud Map。
+  # 注册后，同一个 VPC 内的服务可以用 user.demo.local 找到 user task。
+  service_registries {
+    registry_arn = aws_service_discovery_service.user.arn
+  }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.user_service.arn

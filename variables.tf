@@ -73,3 +73,15 @@ variable "user_container_port" {
   type        = number
   default     = 8080
 }
+
+variable "service_discovery_namespace_name" {
+  description = "Private DNS namespace used by Cloud Map service discovery."
+  type        = string
+  default     = "demo.local"
+}
+
+variable "user_service_discovery_name" {
+  description = "Cloud Map service name for the user service."
+  type        = string
+  default     = "user"
+}
