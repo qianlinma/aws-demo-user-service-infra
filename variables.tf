@@ -74,6 +74,12 @@ variable "user_container_port" {
   default     = 8080
 }
 
+variable "user_grpc_port" {
+  description = "gRPC port used by product service to call user service."
+  type        = number
+  default     = 9090
+}
+
 variable "service_discovery_namespace_name" {
   description = "Private DNS namespace used by Cloud Map service discovery."
   type        = string

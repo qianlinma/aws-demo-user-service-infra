@@ -181,6 +181,14 @@ resource "aws_security_group" "user_task" {
     security_groups = [aws_security_group.user_alb.id]
   }
 
+  ingress {
+    description     = "Allow product service access to user gRPC service"
+    from_port       = var.user_grpc_port
+    to_port         = var.user_grpc_port
+    protocol        = "tcp"
+    security_groups = [data.aws_security_group.backend_task.id]
+  }
+
   egress {
     description = "Allow all outbound traffic"
     from_port   = 0
@@ -284,6 +292,11 @@ resource "aws_ecs_task_definition" "user_service" {
         {
           containerPort = var.user_container_port
           hostPort      = var.user_container_port
+          protocol      = "tcp"
+        },
+        {
+          containerPort = var.user_grpc_port
+          hostPort      = var.user_grpc_port
           protocol      = "tcp"
         }
       ]
