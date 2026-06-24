@@ -322,7 +322,7 @@ resource "aws_ecs_service" "user_service" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
-  health_check_grace_period_seconds = 60
+  health_check_grace_period_seconds = 240
 
   # 把 user ECS task 注册到 Cloud Map。
   # 注册后，同一个 VPC 内的服务可以用 user.demo.internal 找到 user task。
