@@ -77,7 +77,7 @@ variable "user_container_port" {
 variable "service_discovery_namespace_name" {
   description = "Private DNS namespace used by Cloud Map service discovery."
   type        = string
-  default     = "demo.local"
+  default     = "demo.internal"
 }
 
 variable "user_service_discovery_name" {
